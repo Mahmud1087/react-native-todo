@@ -9,10 +9,12 @@ import {
 } from '@expo-google-fonts/josefin-sans';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { useTheme } from '@/context/theme_context';
 import { Id } from '@/convex/_generated/dataModel';
 import { useMutation, useQuery } from 'convex/react';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -22,7 +24,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
+// import './global.css';
 import { todo_styles } from './styles';
+
+type Todo = {
+  _id: Id<'todos'>;
+  _creationTime: number;
+  text: string;
+  isCompleted: boolean;
+  createdAt: number;
+  order?: number;
+};
 
 export default function Index() {
   const [activeButton, setActiveButton] = useState<
@@ -36,6 +52,7 @@ export default function Index() {
   const createTodo = useMutation(api.todos.createTodo);
   const deleteTodo = useMutation(api.todos.deleteTodo);
   const toggleTodo = useMutation(api.todos.toggleTodo);
+  const updateTodo = useMutation(api.todos.updateTodo);
 
   const [fontsLoaded] = useFonts({
     JosefinSans_400Regular,
@@ -71,12 +88,101 @@ export default function Index() {
     }
   };
 
+  const handleReorder = async (data: Todo[]) => {
+    // Update order for all reordered items
+    try {
+      for (let i = 0; i < data.length; i++) {
+        await updateTodo({ id: data[i]._id, order: i });
+      }
+    } catch (error) {
+      console.error('Failed to reorder todos:', error);
+    }
+  };
+
   // Filter todos based on active tab
-  const filteredTodos = todos?.filter((todo) => {
-    if (activeButton === 'Active') return !todo.isCompleted;
-    if (activeButton === 'Completed') return todo.isCompleted;
-    return true; // 'All'
-  });
+  const filteredTodos = todos
+    ?.filter((todo) => {
+      if (activeButton === 'Active') return !todo.isCompleted;
+      if (activeButton === 'Completed') return todo.isCompleted;
+      return true; // 'All'
+    })
+    .sort((a, b) => (a.order ?? a.createdAt) - (b.order ?? b.createdAt));
+
+  const renderTodoItem = ({
+    item: todo,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<Todo>) => {
+    const index = getIndex();
+    const isFirst = index === 0;
+
+    return (
+      <ScaleDecorator>
+        <TouchableOpacity
+          onLongPress={drag}
+          disabled={isActive}
+          style={[
+            todo_styles.todo,
+            {
+              borderTopColor: theme.border,
+              borderTopWidth: isFirst ? 0 : 1,
+              backgroundColor: isActive ? theme.background : 'transparent',
+            },
+          ]}
+        >
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 15,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => handleToggleTodo(todo._id)}
+              style={[
+                todo_styles.check,
+                {
+                  borderColor: theme.circle_border,
+                  borderWidth: todo.isCompleted ? 0 : 2,
+                },
+              ]}
+            >
+              {todo.isCompleted && (
+                <LinearGradient
+                  colors={['#55DDFF', '#C058F3']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={todo_styles.check_gradient}
+                >
+                  <MaterialIcons name='check' size={16} color='white' />
+                </LinearGradient>
+              )}
+            </TouchableOpacity>
+            <Animated.Text
+              style={[
+                todo_styles.todo_text,
+                {
+                  color: todo.isCompleted
+                    ? animatedTheme.inactive_text
+                    : animatedTheme.todo_text,
+                  textDecorationLine: todo.isCompleted
+                    ? 'line-through'
+                    : 'none',
+                },
+              ]}
+            >
+              {todo.text}
+            </Animated.Text>
+          </View>
+          <TouchableOpacity onPress={() => handleDeleteTodo(todo._id)}>
+            <Feather name='x' size={24} color={theme.delete_color} />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </ScaleDecorator>
+    );
+  };
 
   return (
     <Animated.View
@@ -108,7 +214,6 @@ export default function Index() {
       <View style={[todo_styles.form_section]}>
         <View style={todo_styles.form}>
           <TextInput
-            className='form-input'
             style={[
               todo_styles.input,
               {
@@ -135,7 +240,6 @@ export default function Index() {
       </View>
 
       <Animated.View
-        className='todos'
         style={[
           todo_styles.todos,
           {
@@ -164,60 +268,12 @@ export default function Index() {
             </Animated.Text>
           </View>
         ) : (
-          filteredTodos?.map((todo, i) => {
-            return (
-              <View
-                className='todo'
-                style={[
-                  todo_styles.todo,
-                  {
-                    borderTopColor: theme.border,
-                  },
-                ]}
-                key={i}
-              >
-                <View
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 15,
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={() => handleToggleTodo(todo._id)}
-                    style={[
-                      todo_styles.check,
-                      {
-                        borderColor: theme.circle_border,
-                        backgroundImage: todo.isCompleted
-                          ? theme.checkmark
-                          : undefined,
-                      },
-                    ]}
-                  />
-                  <Animated.Text
-                    style={[
-                      todo_styles.todo_text,
-                      {
-                        color: todo.isCompleted
-                          ? animatedTheme.inactive_text
-                          : animatedTheme.todo_text,
-                        textDecorationLine: todo.isCompleted
-                          ? 'line-through'
-                          : 'none',
-                      },
-                    ]}
-                  >
-                    {todo.text}
-                  </Animated.Text>
-                </View>
-                <TouchableOpacity onPress={() => handleDeleteTodo(todo._id)}>
-                  <Feather name='x' size={24} color={theme.delete_color} />
-                </TouchableOpacity>
-              </View>
-            );
-          })
+          <DraggableFlatList
+            data={filteredTodos || []}
+            onDragEnd={({ data }) => handleReorder(data)}
+            keyExtractor={(item) => item._id}
+            renderItem={renderTodoItem}
+          />
         )}
       </Animated.View>
 
@@ -256,7 +312,7 @@ export default function Index() {
         style={{
           fontSize: 17,
           color: animatedTheme.inactive_text,
-          fontWeight: 500,
+          fontWeight: '500',
           textAlign: 'center',
           marginTop: 50,
         }}
