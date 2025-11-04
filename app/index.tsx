@@ -1,6 +1,6 @@
 import DarkLogo from '@/assets/images/dark-bg.jpg';
 import LightLogo from '@/assets/images/light-bg.jpg';
-import Logo from '@/assets/images/logo.svg';
+import Logo from '@/assets/images/logo-png.png';
 import { api } from '@/convex/_generated/api';
 import {
   JosefinSans_400Regular,
