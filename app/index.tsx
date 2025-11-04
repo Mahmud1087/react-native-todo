@@ -11,25 +11,72 @@ import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useTheme } from '@/context/theme_context';
-import { useQuery } from 'convex/react';
+import { Id } from '@/convex/_generated/dataModel';
+import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
-import { Animated, Image, TextInput, View } from 'react-native';
-import './global.css';
+import {
+  ActivityIndicator,
+  Animated,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { todo_styles } from './styles';
 
 export default function Index() {
   const [activeButton, setActiveButton] = useState<
     'All' | 'Active' | 'Completed'
   >('All');
+  const [newTodoText, setNewTodoText] = useState('');
   const { mode, theme, animatedTheme, toggleTheme } = useTheme();
   const dark = mode === 'dark';
-  const tasks = useQuery(api.tasks.get);
+
+  const todos = useQuery(api.todos.getTodos);
+  const createTodo = useMutation(api.todos.createTodo);
+  const deleteTodo = useMutation(api.todos.deleteTodo);
+  const toggleTodo = useMutation(api.todos.toggleTodo);
+
   const [fontsLoaded] = useFonts({
     JosefinSans_400Regular,
     JosefinSans_500Medium,
   });
 
   if (!fontsLoaded) return null;
+
+  const handleCreateTodo = async () => {
+    if (newTodoText.trim()) {
+      try {
+        await createTodo({ text: newTodoText.trim() });
+        setNewTodoText('');
+      } catch (error) {
+        console.error('Failed to create todo:', error);
+      }
+    }
+  };
+
+  const handleToggleTodo = async (id: Id<'todos'>) => {
+    try {
+      await toggleTodo({ id });
+    } catch (error) {
+      console.error('Failed to toggle todo:', error);
+    }
+  };
+
+  const handleDeleteTodo = async (id: Id<'todos'>) => {
+    try {
+      await deleteTodo({ id });
+    } catch (error) {
+      console.error('Failed to delete todo:', error);
+    }
+  };
+
+  // Filter todos based on active tab
+  const filteredTodos = todos?.filter((todo) => {
+    if (activeButton === 'Active') return !todo.isCompleted;
+    if (activeButton === 'Completed') return todo.isCompleted;
+    return true; // 'All'
+  });
 
   return (
     <Animated.View
@@ -59,7 +106,7 @@ export default function Index() {
       </View>
 
       <View style={[todo_styles.form_section]}>
-        <form style={todo_styles.form}>
+        <View style={todo_styles.form}>
           <TextInput
             className='form-input'
             style={[
@@ -71,17 +118,20 @@ export default function Index() {
               },
             ]}
             placeholder='Create a new todo...'
+            value={newTodoText}
+            onChangeText={setNewTodoText}
+            onSubmitEditing={handleCreateTodo}
           />
           <View
-            className='form-circle'
             style={[
               todo_styles.check,
+              todo_styles.form_circle,
               {
                 borderColor: theme.circle_border,
               },
             ]}
           />
-        </form>
+        </View>
       </View>
 
       <Animated.View
@@ -93,53 +143,82 @@ export default function Index() {
           },
         ]}
       >
-        {tasks?.map((task, i) => {
-          return (
-            <View
-              className='todo'
-              style={[
-                todo_styles.todo,
-                {
-                  borderTopColor: theme.border,
-                },
-              ]}
-              key={i}
+        {todos === undefined ? (
+          <View style={{ padding: 40, alignItems: 'center' }}>
+            <ActivityIndicator size='large' color={theme.active_text} />
+          </View>
+        ) : filteredTodos?.length === 0 ? (
+          <View style={{ padding: 40, alignItems: 'center' }}>
+            <Animated.Text
+              style={{
+                color: animatedTheme.inactive_text,
+                fontSize: 16,
+                textAlign: 'center',
+              }}
             >
+              {activeButton === 'All'
+                ? 'No todos yet. Create one above!'
+                : activeButton === 'Active'
+                  ? 'No active todos'
+                  : 'No completed todos'}
+            </Animated.Text>
+          </View>
+        ) : (
+          filteredTodos?.map((todo, i) => {
+            return (
               <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 15,
-                }}
+                className='todo'
+                style={[
+                  todo_styles.todo,
+                  {
+                    borderTopColor: theme.border,
+                  },
+                ]}
+                key={i}
               >
                 <View
-                  style={[
-                    todo_styles.check,
-                    {
-                      borderColor: theme.circle_border,
-                      backgroundImage: task.isCompleted && theme.checkmark,
-                    },
-                  ]}
-                />
-                <Animated.Text
-                  style={[
-                    todo_styles.todo_text,
-                    {
-                      color: task.isCompleted
-                        ? animatedTheme.inactive_text
-                        : animatedTheme.todo_text,
-                      textDecorationLine: task.isCompleted && 'line-through',
-                    },
-                  ]}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 15,
+                  }}
                 >
-                  {task.text}
-                </Animated.Text>
+                  <TouchableOpacity
+                    onPress={() => handleToggleTodo(todo._id)}
+                    style={[
+                      todo_styles.check,
+                      {
+                        borderColor: theme.circle_border,
+                        backgroundImage: todo.isCompleted
+                          ? theme.checkmark
+                          : undefined,
+                      },
+                    ]}
+                  />
+                  <Animated.Text
+                    style={[
+                      todo_styles.todo_text,
+                      {
+                        color: todo.isCompleted
+                          ? animatedTheme.inactive_text
+                          : animatedTheme.todo_text,
+                        textDecorationLine: todo.isCompleted
+                          ? 'line-through'
+                          : 'none',
+                      },
+                    ]}
+                  >
+                    {todo.text}
+                  </Animated.Text>
+                </View>
+                <TouchableOpacity onPress={() => handleDeleteTodo(todo._id)}>
+                  <Feather name='x' size={24} color={theme.delete_color} />
+                </TouchableOpacity>
               </View>
-              <Feather name='x' size={24} color={theme.delete_color} />
-            </View>
-          );
-        })}
+            );
+          })
+        )}
       </Animated.View>
 
       <Animated.View
@@ -151,17 +230,25 @@ export default function Index() {
         ]}
       >
         {['All', 'Active', 'Completed'].map((btn) => (
-          <button
+          <TouchableOpacity
             key={btn}
-            className='footer_button'
-            style={{
-              color:
-                activeButton === btn ? theme.active_text : theme.inactive_text,
-            }}
-            onClick={() => setActiveButton(btn as any)}
+            style={todo_styles.footer_button}
+            onPress={() => setActiveButton(btn as any)}
           >
-            {btn}
-          </button>
+            <Animated.Text
+              style={[
+                todo_styles.footer_button_text,
+                {
+                  color:
+                    activeButton === btn
+                      ? theme.active_text
+                      : theme.inactive_text,
+                },
+              ]}
+            >
+              {btn}
+            </Animated.Text>
+          </TouchableOpacity>
         ))}
       </Animated.View>
 
