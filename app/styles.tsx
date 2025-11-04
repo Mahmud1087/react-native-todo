@@ -6,7 +6,7 @@ export const todo_styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 260,
+    height: 240,
     width: 500,
   },
 
@@ -16,7 +16,7 @@ export const todo_styles = StyleSheet.create({
   },
 
   container: {
-    paddingTop: 80,
+    paddingTop: 75,
     paddingBottom: 70,
     paddingLeft: 30,
     paddingRight: 30,
@@ -36,7 +36,7 @@ export const todo_styles = StyleSheet.create({
   },
 
   form_section: {
-    marginTop: 34,
+    marginTop: 28,
     width: '100%',
   },
 
@@ -63,7 +63,7 @@ export const todo_styles = StyleSheet.create({
   },
 
   todos: {
-    marginTop: 28,
+    marginTop: 20,
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
