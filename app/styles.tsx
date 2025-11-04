@@ -130,5 +130,17 @@ export const todo_styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
+  todo_footer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    paddingTop: 24,
+    paddingBottom: 24,
+    paddingLeft: 20,
+    paddingRight: 20,
+  },
+
   button: {},
 });

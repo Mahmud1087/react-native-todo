@@ -268,12 +268,51 @@ export default function Index() {
             </Animated.Text>
           </View>
         ) : (
-          <DraggableFlatList
-            data={filteredTodos || []}
-            onDragEnd={({ data }) => handleReorder(data)}
-            keyExtractor={(item) => item._id}
-            renderItem={renderTodoItem}
-          />
+          <>
+            <DraggableFlatList
+              data={filteredTodos || []}
+              onDragEnd={({ data }) => handleReorder(data)}
+              keyExtractor={(item) => item._id}
+              renderItem={renderTodoItem}
+            />
+            <Animated.View
+              style={[
+                todo_styles.todo_footer,
+                {
+                  borderTopColor: theme.border,
+                },
+              ]}
+            >
+              <Animated.Text
+                style={[
+                  {
+                    color: theme.inactive_text,
+                    fontSize: 16,
+                    fontFamily: 'JosefinSans_500Medium',
+                  },
+                ]}
+              >
+                {filteredTodos?.length} item
+                {Number(filteredTodos?.length) > 1 && 's'} left
+              </Animated.Text>
+              <TouchableOpacity
+              // style={todo_styles.footer_button}
+              // onPress={() => setActiveButton(btn as any)}
+              >
+                <Animated.Text
+                  style={[
+                    {
+                      color: theme.inactive_text,
+                      fontSize: 16,
+                      fontFamily: 'JosefinSans_500Medium',
+                    },
+                  ]}
+                >
+                  Clear Completed
+                </Animated.Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </>
         )}
       </Animated.View>
 
