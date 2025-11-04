@@ -6,5 +6,6 @@ export default defineSchema({
     text: v.string(),
     isCompleted: v.boolean(),
     createdAt: v.number(),
+    order: v.optional(v.number()),
   }),
 });

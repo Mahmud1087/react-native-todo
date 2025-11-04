@@ -8,10 +8,16 @@ export const createTodo = mutation({
     isCompleted: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    // Get the highest order value
+    const allTodos = await ctx.db.query('todos').collect();
+    const maxOrder =
+      allTodos.length > 0 ? Math.max(...allTodos.map((t) => t.order ?? 0)) : -1;
+
     const todoId = await ctx.db.insert('todos', {
       text: args.text,
       isCompleted: args.isCompleted ?? false,
       createdAt: Date.now(),
+      order: maxOrder + 1,
     });
     return todoId;
   },
@@ -43,6 +49,7 @@ export const updateTodo = mutation({
     id: v.id('todos'),
     text: v.optional(v.string()),
     isCompleted: v.optional(v.boolean()),
+    order: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
