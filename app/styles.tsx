@@ -5,8 +5,9 @@ export const todo_styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    height: 220,
-    width: '100%',
+    right: 0,
+    height: 260,
+    width: 500,
   },
 
   img: {
@@ -15,7 +16,7 @@ export const todo_styles = StyleSheet.create({
   },
 
   container: {
-    paddingTop: 45,
+    paddingTop: 80,
     paddingBottom: 70,
     paddingLeft: 30,
     paddingRight: 30,
@@ -87,6 +88,14 @@ export const todo_styles = StyleSheet.create({
     borderRadius: 100,
     borderStyle: 'solid',
     borderWidth: 2,
+  },
+
+  check_gradient: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   form_circle: {
