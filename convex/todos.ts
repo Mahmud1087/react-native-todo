@@ -85,3 +85,20 @@ export const toggleTodo = mutation({
     return args.id;
   },
 });
+
+// Clear all completed todos
+export const clearCompleted = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const completedTodos = await ctx.db
+      .query('todos')
+      .filter((q) => q.eq(q.field('isCompleted'), true))
+      .collect();
+
+    for (const todo of completedTodos) {
+      await ctx.db.delete(todo._id);
+    }
+
+    return { cleared: completedTodos.length };
+  },
+});

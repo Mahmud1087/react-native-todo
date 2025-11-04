@@ -53,6 +53,7 @@ export default function Index() {
   const deleteTodo = useMutation(api.todos.deleteTodo);
   const toggleTodo = useMutation(api.todos.toggleTodo);
   const updateTodo = useMutation(api.todos.updateTodo);
+  const clearCompleted = useMutation(api.todos.clearCompleted);
 
   const [fontsLoaded] = useFonts({
     JosefinSans_400Regular,
@@ -89,13 +90,21 @@ export default function Index() {
   };
 
   const handleReorder = async (data: Todo[]) => {
-    // Update order for all reordered items
     try {
       for (let i = 0; i < data.length; i++) {
         await updateTodo({ id: data[i]._id, order: i });
       }
     } catch (error) {
       console.error('Failed to reorder todos:', error);
+    }
+  };
+
+  const handleClearCompleted = async () => {
+    try {
+      const res = await clearCompleted();
+      console.log(`${res.cleared} completed todos cleared`);
+    } catch (error) {
+      console.error('Failed to clear completed todos:', error);
     }
   };
 
@@ -298,8 +307,8 @@ export default function Index() {
                 {Number(filteredTodos?.length) > 1 && 's'} left
               </Animated.Text>
               <TouchableOpacity
-              // style={todo_styles.footer_button}
-              // onPress={() => setActiveButton(btn as any)}
+                // style={todo_styles.footer_button}
+                onPress={handleClearCompleted}
               >
                 <Animated.Text
                   style={[
