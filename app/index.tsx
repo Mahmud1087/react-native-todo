@@ -170,6 +170,7 @@ export default function Index() {
                   textDecorationLine: todo.isCompleted
                     ? 'line-through'
                     : 'none',
+                  fontFamily: 'JosefinSans_500Medium',
                 },
               ]}
             >
@@ -220,6 +221,7 @@ export default function Index() {
                 color: theme.input_text,
                 backgroundColor: theme.background,
                 width: '100%',
+                fontFamily: 'JosefinSans_500Medium',
               },
             ]}
             placeholder='Create a new todo...'
@@ -338,6 +340,7 @@ export default function Index() {
                     activeButton === btn
                       ? theme.active_text
                       : theme.inactive_text,
+                  fontFamily: 'JosefinSans_500Medium',
                 },
               ]}
             >
@@ -351,9 +354,9 @@ export default function Index() {
         style={{
           fontSize: 17,
           color: animatedTheme.inactive_text,
-          fontWeight: '500',
           textAlign: 'center',
           marginTop: 50,
+          fontFamily: 'JosefinSans_500Medium',
         }}
       >
         Drag and drop to reorder list

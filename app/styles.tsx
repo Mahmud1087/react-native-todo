@@ -49,11 +49,11 @@ export const todo_styles = StyleSheet.create({
   },
 
   input: {
-    borderRadius: 6,
+    borderRadius: 8,
     fontSize: 16,
     borderWidth: 0,
-    paddingTop: 14,
-    paddingBottom: 14,
+    paddingTop: 20,
+    paddingBottom: 20,
     paddingLeft: 60,
     paddingRight: 10,
   },
@@ -113,11 +113,11 @@ export const todo_styles = StyleSheet.create({
     marginTop: 25,
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 10,
     paddingBottom: 10,
-    borderRadius: 6,
+    borderRadius: 8,
   },
 
   footer_button: {
